@@ -1,0 +1,5 @@
+mypy==1.13.0
+pytest==8.3.3
+SQLAlchemy==2.0.36
+Flask==3.1.0
+Flask-Cors==5.0.0
