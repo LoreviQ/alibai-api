@@ -1,6 +1,6 @@
 """Utility functions for flask app."""
 
-from flask import Blueprint, Flask
+from flask import Blueprint, Flask, make_response
 
 bp = Blueprint("routes", __name__)
 
@@ -10,8 +10,7 @@ def register_routes(app: Flask) -> None:
     app.register_blueprint(bp)
 
 
-# declare routes like:
-#
-# @bp.route("/example")
-# def example():
-#     return make_response("example response", 200)
+@bp.route("/ready")
+def ready():
+    """Return a 200 response."""
+    return make_response("app is ready", 200)
