@@ -21,7 +21,7 @@ SCOPES = ["tweet.read", "tweet.write", "users.read", "offline.access"]
 
 def get_callback_url():
     """Return the callback URL for the x.com OAuth flow."""
-    return url_for("main.x_auth_callback", _external=True)
+    return url_for("routes.x_auth_callback", _external=True)
 
 
 session = {}
