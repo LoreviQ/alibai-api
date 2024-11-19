@@ -5,6 +5,7 @@ import os
 from flask import Flask
 from flask_cors import CORS
 
+import database as db
 from routes import register_routes
 
 
@@ -23,5 +24,6 @@ def run_app(app: Flask) -> None:
 
 
 if __name__ == "__main__":
+    db.create_db()
     flask_app = initialize_app()
     run_app(flask_app)
