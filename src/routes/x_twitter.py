@@ -75,19 +75,38 @@ def x_auth_callback():
         "code_verifier": session["code_verifier"],
     }
 
-    response = requests.post(
+    # Get tokens using the code
+    token_response = requests.post(
         token_url, data=data, auth=(CLIENT_ID, CLIENT_SECRET), timeout=5
     )
-    if response.status_code != 200:
+    if token_response.status_code != 200:
         return make_response("Failed to exchange code for access token", 400)
+    token_data = token_response.json()
+    expires_at = datetime.now(timezone.utc) + timedelta(
+        seconds=token_data["expires_in"]
+    )
+    access_token = token_data["access_token"]
 
-    tokens = response.json()
-    expires_at = datetime.now(timezone.utc) + timedelta(seconds=tokens["expires_in"])
-    user_id = db.insert_user(db.User(x_user_id=tokens["user_id"]))
+    # Get user information using the access token
+    user_response = requests.get(
+        "https://api.twitter.com/2/users/me",
+        headers={"Authorization": f"Bearer {access_token}"},
+        timeout=5,
+    )
+    if user_response.status_code != 200:
+        return make_response("Failed to get user information", 400)
+    user_data = user_response.json()
+
+    # store user information in database
+    user = db.User(
+        x_user_id=user_data["data"]["id"],
+        x_username=user_data["data"]["username"],
+    )
+    user_id = db.insert_user(user)
     token = db.OAuthToken(
         user_id=user_id,
-        access_token=tokens["access_token"],
-        refresh_token=tokens["refresh_token"],
+        access_token=access_token,
+        refresh_token=token_data["refresh_token"],
         expires_at=expires_at,
     )
     db.insert_oauth_token(token)
