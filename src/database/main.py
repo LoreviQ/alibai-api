@@ -1,14 +1,16 @@
 """Miscellaneous database functions."""
 
+import os
 from typing import Any, Callable, List
 
 from sqlalchemy import Engine, Table, create_engine, insert, select
 
 from .metadata import QueryOptions, metadata
 
-# Default connection string is a sqlite database stored in memory.
-# Change this to your database connection string.
-CONN_STRING = "sqlite+pysqlite:///:memory:"
+CONN_STRING = os.getenv("DATABASE_URL")
+if not CONN_STRING:
+    # default to in-memory sqlite database - used for testing
+    CONN_STRING = "sqlite+pysqlite:///:memory:"
 ECHO = True
 ENGINE = create_engine(
     CONN_STRING,
@@ -18,10 +20,10 @@ ENGINE = create_engine(
 
 def create_db(engine: Engine | None = None) -> None:
     """Create the database."""
+    print("Creating database...", CONN_STRING)
     if not engine:
         engine = ENGINE
     metadata.create_all(ENGINE)
-    print("Database created")
 
 
 def generic_insert(table: Table, values: Any) -> int:
