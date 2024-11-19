@@ -19,7 +19,6 @@ ENGINE = create_engine(
 
 def create_db(engine: Engine | None = None) -> None:
     """Create the database."""
-    print("Creating database...", CONN_STRING)
     if not engine:
         engine = ENGINE
     metadata.create_all(ENGINE)
