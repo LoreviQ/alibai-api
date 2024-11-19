@@ -21,6 +21,7 @@ def create_db(engine: Engine | None = None) -> None:
     if not engine:
         engine = ENGINE
     metadata.create_all(ENGINE)
+    print("Database created")
 
 
 def generic_insert(table: Table, values: Any) -> int:
