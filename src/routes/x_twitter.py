@@ -82,11 +82,18 @@ def x_auth_callback():
 
     tokens = response.json()
     expires_at = datetime.now(timezone.utc) + timedelta(seconds=tokens["expires_in"])
+    user_id = db.insert_user(db.User(x_user_id=tokens["user_id"]))
     token = db.OAuthToken(
-        user_id=1,
+        user_id=user_id,
         access_token=tokens["access_token"],
         refresh_token=tokens["refresh_token"],
         expires_at=expires_at,
     )
     db.insert_oauth_token(token)
     return redirect("/success")
+
+
+@bp.route("/success")
+def success():
+    """Return a 200 response."""
+    return make_response("Success", 200)
