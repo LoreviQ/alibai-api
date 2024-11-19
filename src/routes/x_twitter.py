@@ -102,14 +102,18 @@ def x_auth_callback():
         x_user_id=user_data["data"]["id"],
         x_username=user_data["data"]["username"],
     )
-    user_id = db.insert_user(user)
+    matching_user = db.select_users(user)
+    if matching_user:
+        user_id = matching_user[0]["id"]
+    else:
+        user_id = db.insert_user(user)
     token = db.OAuthToken(
         user_id=user_id,
         access_token=access_token,
         refresh_token=token_data["refresh_token"],
         expires_at=expires_at,
     )
-    db.insert_oauth_token(token)
+    db.update_or_insert_oauth_token(token)
     return redirect("/success")
 
 
