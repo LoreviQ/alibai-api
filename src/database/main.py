@@ -7,7 +7,7 @@ from sqlalchemy import Engine, Table, create_engine, insert, select
 
 from .metadata import QueryOptions, metadata
 
-CONN_STRING = os.getenv("DATABASE_URL")
+CONN_STRING = "postgresql://alibai_admin:slWZHMlqUDuLpex4wUDHp1yQGQEynquj@dpg-csuf8b5ds78s73cuvlgg-a/alibai_db"
 if not CONN_STRING:
     # default to in-memory sqlite database - used for testing
     CONN_STRING = "sqlite+pysqlite:///:memory:"
