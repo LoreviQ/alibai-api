@@ -8,7 +8,7 @@ import urllib.parse
 from datetime import datetime, timedelta, timezone
 
 import requests
-from flask import make_response, redirect, request, url_for
+from flask import make_response, redirect, request
 
 import database as db
 
@@ -17,11 +17,7 @@ from .main import bp
 CLIENT_ID = os.getenv("X_CLIENT_ID")
 CLIENT_SECRET = os.getenv("X_CLIENT_SECRET")
 SCOPES = ["tweet.read", "tweet.write", "users.read", "offline.access"]
-
-
-def get_callback_url():
-    """Return the callback URL for the x.com OAuth flow."""
-    return url_for("routes.x_auth_callback", _external=True)
+CALLBACK_URL = "https://alibai.onrender.com/auth/link_account/x/callback"
 
 
 session = {}
@@ -42,7 +38,7 @@ def x_auth():
     params = {
         "response_type": "code",
         "client_id": CLIENT_ID,
-        "redirect_uri": get_callback_url(),
+        "redirect_uri": CALLBACK_URL,
         "scope": " ".join(SCOPES),
         "state": state,
         "code_challenge_method": "S256",
@@ -75,7 +71,7 @@ def x_auth_callback():
         "code": code,
         "grant_type": "authorization_code",
         "client_id": CLIENT_ID,
-        "redirect_uri": get_callback_url(),
+        "redirect_uri": CALLBACK_URL,
         "code_verifier": session["code_verifier"],
     }
 
