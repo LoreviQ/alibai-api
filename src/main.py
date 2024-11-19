@@ -7,10 +7,21 @@ from flask_cors import CORS
 
 from routes import register_routes
 
-app = Flask(__name__)
-CORS(app)
-register_routes(app)
-port = int(os.getenv("PORT", "5000"))
+
+def initialize_app() -> Flask:
+    """Initialize the flask app."""
+    app = Flask(__name__)
+    CORS(app)
+    register_routes(app)
+    return app
+
+
+def run_app(app: Flask) -> None:
+    """Run the flask app."""
+    port = int(os.getenv("PORT", "5000"))
+    app.run(host="0.0.0.0", port=port)
+
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=port)
+    flask_app = initialize_app()
+    run_app(flask_app)

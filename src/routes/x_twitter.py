@@ -17,7 +17,12 @@ from .main import bp
 CLIENT_ID = os.getenv("X_CLIENT_ID")
 CLIENT_SECRET = os.getenv("X_CLIENT_SECRET")
 SCOPES = ["tweet.read", "tweet.write", "users.read", "offline.access"]
-CALLBACK = url_for("main.x_auth_callback", _external=True)
+
+
+def get_callback_url():
+    """Return the callback URL for the x.com OAuth flow."""
+    return url_for("main.x_auth_callback", _external=True)
+
 
 session = {}
 
@@ -37,7 +42,7 @@ def x_auth():
     params = {
         "response_type": "code",
         "client_id": CLIENT_ID,
-        "redirect_uri": CALLBACK,
+        "redirect_uri": get_callback_url(),
         "scope": " ".join(SCOPES),
         "state": state,
         "code_challenge_method": "S256",
@@ -70,7 +75,7 @@ def x_auth_callback():
         "code": code,
         "grant_type": "authorization_code",
         "client_id": CLIENT_ID,
-        "redirect_uri": CALLBACK,
+        "redirect_uri": get_callback_url(),
         "code_verifier": session["code_verifier"],
     }
 
