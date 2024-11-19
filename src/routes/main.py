@@ -10,7 +10,7 @@ def register_routes(app: Flask) -> None:
     app.register_blueprint(bp)
 
 
-@bp.route("/ready")
-def ready():
+@bp.route("/healthz")
+def healthz():
     """Return a 200 response."""
     return make_response("app is ready", 200)
