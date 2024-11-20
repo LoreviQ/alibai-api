@@ -2,6 +2,7 @@
 
 import base64
 import hashlib
+import logging
 import os
 import secrets
 import urllib.parse
@@ -13,6 +14,9 @@ from flask import jsonify, make_response, request
 import database as db
 
 from .main import bp
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 CLIENT_ID = os.getenv("X_CLIENT_ID")
 CLIENT_SECRET = os.getenv("X_CLIENT_SECRET")
@@ -59,12 +63,14 @@ def x_auth_callback():
     code = data.get("code")
     state = data.get("state")
 
+    logger.debug("Received callback with code: %s, state: %s", code, state)
+
     if state != session["state"]:
         return make_response("Invalid state parameter", 400)
 
     # Exchange code for access token
     token_url = "https://api.twitter.com/2/oauth2/token"
-    data = {
+    request_data = {
         "code": code,
         "grant_type": "authorization_code",
         "client_id": CLIENT_ID,
@@ -72,12 +78,25 @@ def x_auth_callback():
         "code_verifier": session["code_verifier"],
     }
 
+    logger.debug("Token request data: %s", request_data)
+    logger.debug("Client ID length: %d", len(CLIENT_ID) if CLIENT_ID else 0)
+    logger.debug("Client Secret length: %d", len(CLIENT_SECRET) if CLIENT_SECRET else 0)
+
     # Get tokens using the code
     token_response = requests.post(
-        token_url, data=data, auth=(CLIENT_ID, CLIENT_SECRET), timeout=5
+        token_url, data=request_data, auth=(CLIENT_ID, CLIENT_SECRET), timeout=5
     )
+    logger.debug("Token response status: %d", token_response.status_code)
+    logger.debug("Token response body: %s", token_response.text)
     if token_response.status_code != 200:
-        return make_response("Failed to exchange code for access token", 400)
+        logger.error(
+            "Token exchange failed with status %d: %s",
+            token_response.status_code,
+            token_response.text,
+        )
+        return make_response(
+            f"Failed to exchange code for access token: {token_response.text}", 400
+        )
     token_data = token_response.json()
     expires_at = datetime.now(timezone.utc) + timedelta(
         seconds=token_data["expires_in"]
