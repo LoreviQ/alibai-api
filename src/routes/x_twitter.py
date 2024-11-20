@@ -8,7 +8,7 @@ import urllib.parse
 from datetime import datetime, timedelta, timezone
 
 import requests
-from flask import make_response, redirect, request
+from flask import make_response, request
 
 import database as db
 
@@ -17,13 +17,13 @@ from .main import bp
 CLIENT_ID = os.getenv("X_CLIENT_ID")
 CLIENT_SECRET = os.getenv("X_CLIENT_SECRET")
 SCOPES = ["tweet.read", "tweet.write", "users.read", "offline.access"]
-CALLBACK_URL = "https://alibai.onrender.com/auth/link_account/x/callback"
+CALLBACK_URL = "https://alibai-client.onrender.com/link_account/x/callback"
 
 
 session = {}
 
 
-@bp.route("/auth/link_account/x")
+@bp.route("/v1/auth/oauth/x/redirect", methods=["GET"])
 def x_auth():
     """Redirect to Twitter authorization page."""
     # Generate state parameter for security
@@ -49,18 +49,15 @@ def x_auth():
     session["state"] = state
     session["code_verifier"] = code_verifier
 
-    return redirect(authorization_url)
+    return make_response({"authorization_url": authorization_url}, 200)
 
 
-@bp.route("/auth/link_account/x/callback")
+@bp.route("/v1/auth/oauth/x/callback")
 def x_auth_callback():
-    """Handle callback from Twitter authorization page."""
-    error = request.args.get("error")
-    if error:
-        return make_response(f"Authorization failed: {error}", 400)
-
-    code = request.args.get("code")
-    state = request.args.get("state")
+    """Store the data from the Twitter Oauth event."""
+    data = request.json
+    code = data.get("code")
+    state = data.get("state")
 
     if state != session["state"]:
         return make_response("Invalid state parameter", 400)
@@ -114,10 +111,4 @@ def x_auth_callback():
         expires_at=expires_at,
     )
     db.update_or_insert_oauth_token(token)
-    return redirect("/success")
-
-
-@bp.route("/success")
-def success():
-    """Return a 200 response."""
     return make_response("Success", 200)
