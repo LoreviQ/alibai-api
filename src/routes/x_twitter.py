@@ -8,7 +8,7 @@ import urllib.parse
 from datetime import datetime, timedelta, timezone
 
 import requests
-from flask import make_response, request
+from flask import jsonify, make_response, request
 
 import database as db
 
@@ -52,7 +52,7 @@ def x_auth():
     return make_response({"authorization_url": authorization_url}, 200)
 
 
-@bp.route("/v1/auth/oauth/x/callback")
+@bp.route("/v1/auth/oauth/x/callback", methods=["POST"])
 def x_auth_callback():
     """Store the data from the Twitter Oauth event."""
     data = request.json
@@ -93,11 +93,11 @@ def x_auth_callback():
     if user_response.status_code != 200:
         return make_response("Failed to get user information", 400)
     user_data = user_response.json()
-
+    username = user_data["data"]["username"]
     # store user information in database
     user = db.User(
         x_user_id=user_data["data"]["id"],
-        x_username=user_data["data"]["username"],
+        x_username=username,
     )
     matching_user = db.select_users(user)
     if matching_user:
@@ -111,4 +111,5 @@ def x_auth_callback():
         expires_at=expires_at,
     )
     db.update_or_insert_oauth_token(token)
-    return make_response("Success", 200)
+    response = {"userid": str(user_id), "username": username}
+    return make_response(jsonify(response), 200)
